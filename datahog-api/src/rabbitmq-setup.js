@@ -4,9 +4,12 @@ const REQUEST_MAIN_EXCHANGE =  'datahog.exchange.main';
 const REQUEST_MAIN_QUEUE= 'datahog.main';
 const REQUEST_DEADLETTER_EXCHANGE= 'datahog.exchange.dead';
 const REQUEST_DEADLETTER_QUEUE= 'datahog.dead';
+const RESPONSE_MAIN_EXCHANGE =  'datahog.exchange.response.main';
+const RESPONSE_MAIN_QUEUE= 'datahog.response.main';
+const RESPONSE_DEADLETTER_EXCHANGE= 'datahog.exchange.response.dead';
+const RESPONSE_DEADLETTER_QUEUE= 'datahog.response.dead';
 class RabbitMQSetup {
    static init() {
-    console.log(`PM.....${JSON.stringify(config.RabbitMQ)}`);
     const amqpUrl = `amqp://${config.RabbitMQ.username}:${config.RabbitMQ.password}@${config.RabbitMQ.host}:${config.RabbitMQ.port}`;
     //const amqpUrl = `amqp://guest:guest@rabbitmq:5672`;
     console.log(`Queue Url - ${amqpUrl}`)
@@ -41,6 +44,8 @@ class RabbitMQSetup {
   
         return RabbitMQSetup.assertRequestDeadLetterExchangeAndQueue(channel)
           .then(() => RabbitMQSetup.assertRequestMainExchangeAndQueue(channel))
+          .then(() => RabbitMQSetup.assertResponseDeadLetterExchangeAndQueue(channel))
+          .then(() => RabbitMQSetup.assertResponseMainExchangeAndQueue(channel))
           .then(() => ({ connection, channel }))
           .catch(e => console.error(`Failed to assert exchange/queue: ${e}`));
       });
@@ -63,6 +68,24 @@ class RabbitMQSetup {
         REQUEST_MAIN_EXCHANGE,
         q.queue));
   }
+
+  static assertResponseMainExchangeAndQueue(channel) {
+    console.info('Asserting response main exchange and queue');
+    return channel
+      .assertExchange(RESPONSE_MAIN_EXCHANGE, 'x-delayed-message', {
+        durable: true,
+        arguments: { 'x-delayed-type': 'direct' },
+      })
+      .then(() => channel
+          .assertQueue(RESPONSE_MAIN_QUEUE, {
+            durable: true,
+            deadLetterExchange: RESPONSE_DEADLETTER_EXCHANGE,
+            deadLetterRoutingKey: RESPONSE_DEADLETTER_QUEUE,
+          }))
+      .then(q => channel.bindQueue(q.queue,
+        REQUEST_MAIN_EXCHANGE,
+        q.queue));
+  }
   
   static assertRequestDeadLetterExchangeAndQueue(channel) {
     console.info('Asserting request dead-letter exchange and queue');
@@ -74,6 +97,19 @@ class RabbitMQSetup {
         { durable: true }))
       .then(q => channel.bindQueue(q.queue,
         REQUEST_DEADLETTER_EXCHANGE,
+        q.queue));
+  }
+
+  static assertResponseDeadLetterExchangeAndQueue(channel) {
+    console.info('Asserting response dead-letter exchange and queue');
+    return channel
+      .assertExchange(RESPONSE_DEADLETTER_EXCHANGE,
+        'direct',
+        { durable: true })
+      .then(() => channel.assertQueue(RESPONSE_DEADLETTER_QUEUE,
+        { durable: true }))
+      .then(q => channel.bindQueue(q.queue,
+        RESPONSE_DEADLETTER_EXCHANGE,
         q.queue));
   }
 

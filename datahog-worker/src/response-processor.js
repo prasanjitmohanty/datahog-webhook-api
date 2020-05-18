@@ -1,7 +1,6 @@
 const messagePublisher = require('./message-publisher');
-const responsePublisher = require('./response-message-publisher');
-const providerService = require('./provider-service');
-class RequestProcessor {
+const responseProviderService = require('./provider-response-service');
+class ResponseProcessor {
 
   constructor(id, exchangeName, queueName, channel) {
     this.id = id;
@@ -38,9 +37,8 @@ class RequestProcessor {
     console.log('processMessage.....');
     const msg = parseMessage(message.content.toString());
     console.log(`Received message ${msg}`);
-    providerService.getProviderData(msg).then(result=>{
+    responseProviderService.postProviderData(msg).then(result=>{
       console.log(`Result ${result}`);
-      responsePublisher.publish(result);
 
     if (this.hasExceededMaxAttempts(message)) {
       return this.reject(message);
@@ -58,7 +56,6 @@ class RequestProcessor {
 
   acknowledge(status, message) {
     if (status === 'SUCCESS') {
-      responsePublisher.p
       return this.accept(message);
     } else if (status === 'FAILED') {
       return this.reject(message);
@@ -114,4 +111,4 @@ class RequestProcessor {
 }
 
 module.exports.create = (id, exchangeName, queueName, channel) =>
-  new RequestProcessor(id, exchangeName, queueName, channel);
+  new ResponseProcessor(id, exchangeName, queueName, channel);

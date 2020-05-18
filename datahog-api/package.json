@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node ./src/server.js",
-    "dev": "nodemon ./src/server.js"
+    "dev": "nodemon ./src/server.js",
+    "test": "mocha -t 5000 test/*-test.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +18,9 @@
     "express": "^4.17.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.4"
+    "chai": "^4.2.0",
+    "mocha": "^7.1.2",
+    "nodemon": "^2.0.4",
+    "sinon": "^9.0.2"
   }
 }

@@ -1,10 +1,8 @@
-const RabbitMQSetup = require('./rabbitmq-setup');
-const REQUEST_MAIN_EXCHANGE =  'datahog.exchange.main';
-const REQUEST_MAIN_QUEUE= 'datahog.main';
+const RabbitMQSetup = require('../rabbitmq-setup');
 class MessagePublisher{
-    constructor(delay, channel) {
-        this.exchange = REQUEST_MAIN_EXCHANGE;
-        this.routingKey = 'request';
+    constructor(exchange,routingKey, delay, channel) {
+        this.exchange = exchange;
+        this.routingKey = routingKey || 'request';
         this.delay = delay || 0;
         this.channel = channel;
       }
