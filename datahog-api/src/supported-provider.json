@@ -1,0 +1,4 @@
+{
+    "gas": "http://localhost:3000/provider/gas",
+    "internet": "http://localhost:3000/provider/internet"
+}
