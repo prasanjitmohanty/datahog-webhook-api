@@ -1,0 +1,41 @@
+version: '3'
+services:
+  api:
+    image: datahog-api
+    build: ./datahog-api
+    links:
+      - rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./datahog-api:/usr/src/app
+  worker:
+    image: datahog-worker
+    build: ./datahog-worker
+    links:
+      - rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - backend
+    volumes:
+      - ./datahog-worker:/usr/src/app
+  rabbitmq:
+    image: rabbitmq
+    build: ./rabbitmq
+    networks:
+      - backend
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+
+networks:
+  backend:
+volumes:
+  rabbitmq:
